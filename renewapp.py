@@ -12,7 +12,7 @@ PASSWORD = os.getenv("ZAMPTO_PASSWORD")
 
 if not USERNAME or not PASSWORD:
     raise RuntimeError("❌ 未检测到 ZAMPTO_USER / ZAMPTO_PASS 环境变量")
-SERVER_ID = "2186"
+SERVER_ID = "2168"
 
 LOGIN_URL = "https://auth.zampto.net/sign-in?app_id=bmhk6c8qdqxphlyscztgl"
 DASH_URL = f"https://dash.zampto.net/server?id={SERVER_ID}"
