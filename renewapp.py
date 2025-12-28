@@ -8,7 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 # ================= 配置区 =================
 USERNAME = ""
 PASSWORD = ""
-SERVER_ID = "2711"
+SERVER_ID = "2186"
 
 LOGIN_URL = "https://auth.zampto.net/sign-in?app_id=bmhk6c8qdqxphlyscztgl"
 DASH_URL = f"https://dash.zampto.net/server?id={SERVER_ID}"
