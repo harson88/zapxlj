@@ -107,8 +107,7 @@ def run_task():
         else:
              print("🎉 续期脚本执行完毕。")
              print(f"   最终 URL: {driver.current_url}")
-
-                 send_telegram(
+             send_telegram(
                  "🎉 <b>Zampto VPS 续期成功</b>\n"
                  f"最终 URL：{driver.current_url}"
             )
