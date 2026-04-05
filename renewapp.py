@@ -145,13 +145,13 @@ def detect_turnstile_type(sb) -> str:
         print(f"[WARN] 检测类型出错: {e}")
         return "visible"  # 出错时默认 visible，更安全
 
-def wait_turnstile_complete(sb, timeout: int = 60) -> str:
+def wait_turnstile_complete(sb, timeout: int = 30) -> str:
     """
     等待 Turnstile 完成
     返回: "token", "closed", "timeout"
     """
     print(f"[INFO] 等待验证完成 (最多 {timeout}s)...")
-    
+    return "timeout"
     for i in range(timeout):
         try:
             result = sb.execute_script('''
@@ -326,7 +326,13 @@ def login(sb, user: str, pwd: str, idx: int) -> bool:
             if login_success:
                 print("[INFO] ✅ 登录成功")
                 return True
-            # --- 替换结束 ---
+            # --- 新增：强制退出逻辑 ---
+            if attempt == 2:
+                msg = f"账号 {mask(user)} 连续 3 次登录失败，环境可能异常，强制退出以防超时。"
+                print(f"[CRITICAL] {msg}")
+                notify(False, "登录失败", msg)
+                sys.exit(1) # 立即终止脚本，GitHub 会保留当前日志
+            # -----------------------           
             
             print(f"[WARN] 尝试 {attempt + 1}: 登录未成功")
             
@@ -445,7 +451,12 @@ def renew(sb, sid: str, idx: int) -> Dict[str, Any]:
     sb.save_screenshot(shot(idx, f"srv-{sid}-modal"))
     
     # 处理 Turnstile
-    handle_turnstile(sb, idx)
+    success_verify = handle_turnstile(sb, idx)
+    if not success_verify:
+        print("[WARN] 验证码超时或失效，尝试刷新页面并跳过该服务器...")
+        sb.refresh() # 强制刷新页面
+        result["message"] = "验证码超时"
+        return result # 直接返回，处理下一个，不在这里死等   
     
     time.sleep(3)
     
@@ -565,13 +576,13 @@ def main():
         start_run_time = time.time() # 新增：记录总开始时间
         with SB(**opts) as sb:
             for i, (u, p) in enumerate(accounts, 1):
-            # 检查运行时间：1200 秒 = 20 分钟
-            current_elapsed = time.time() - start_run_time
-            if current_elapsed > 1200:
-                msg = f"已运行 {int(current_elapsed/60)} 分钟，达到 20 分钟预设上限，强制退出。"
-                print(f"[CRITICAL] {msg}")
-                notify(False, "时限到达", msg)
-                break # 跳出账号循环，进入最后的 summary 阶段
+                # 检查运行时间：1200 秒 = 20 分钟
+                current_elapsed = time.time() - start_run_time
+                if current_elapsed > 1200:
+                    msg = f"已运行 {int(current_elapsed/60)} 分钟，达到 20 分钟预设上限，强制退出。"
+                    print(f"[CRITICAL] {msg}")
+                    notify(False, "时限到达", msg)
+                    break # 跳出账号循环，进入最后的 summary 阶段
             
                 try:
                     r = process(sb, u, p, i)
