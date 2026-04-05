@@ -451,13 +451,8 @@ def renew(sb, sid: str, idx: int) -> Dict[str, Any]:
     sb.save_screenshot(shot(idx, f"srv-{sid}-modal"))
     
     # 处理 Turnstile
-    success_verify = handle_turnstile(sb, idx)
-    if not success_verify:
-        print("[WARN] 验证码超时或失效，尝试刷新页面并跳过该服务器...")
-        sb.refresh() # 强制刷新页面
-        result["message"] = "验证码超时"
-        return result # 直接返回，处理下一个，不在这里死等   
-    
+    handle_turnstile(sb, idx)
+        
     time.sleep(3)
     
     sp = shot(idx, f"srv-{sid}")
